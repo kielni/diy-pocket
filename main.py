@@ -19,7 +19,7 @@ class ArticleInput(BaseModel):
     tags: List[str]
     photo_url: Optional[HttpUrl]
 
-@app.post("/article")
+@app.post("/save")
 def save_article():
     try:
         # Parse request body
@@ -33,14 +33,9 @@ def save_article():
             "tags": article.tags
         })
         
-        # Here you would typically save to a database
-        # For now, we'll just return success
         return {
             "statusCode": 200,
-            "body": json.dumps({
-                "message": "Article saved successfully",
-                "article": article.model_dump()
-            })
+            "body": json.dumps({"status": "ok"})
         }
         
     except Exception as e:

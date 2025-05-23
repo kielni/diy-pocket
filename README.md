@@ -23,9 +23,6 @@ Successful response (200):
 ```json
 {
     "message": "Article saved successfully",
-    "article": {
-        // Echo of the submitted article data
-    }
 }
 ```
 
@@ -36,23 +33,41 @@ Error response (400):
 }
 ```
 
-## Development
+## Development and Deployment
 
 1. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-2. Deploy to AWS Lambda:
-- Runtime: Python 3.9+
-- Handler: main.lambda_handler
-- Memory: 128 MB (adjustable based on needs)
-- Timeout: 30 seconds
+2. First time deployment
 
-3. Configure API Gateway:
-- Create a REST API
-- Create a POST method for /article
-- Integrate with the Lambda function
+Create diy-pocket-save Lambda in AWS console.
+
+```bash
+make setup-api
+```
+
+3. Save ROLE_ARN
+
+Add Lambda details to `local.env`
+
+
+4. Deploy to AWS Lambda:
+```bash
+# Update existing function
+make build update-lambda
+```
+
+Required environment variables:
+- `ROLE_ARN` - AWS IAM Role ARN for Lambda execution
+- `FUNCTION_NAME` - Lambda function name (defaults to diy-pocket-save)
+
+Lambda Function Configuration:
+- Runtime: Python 3.9
+- Handler: main.lambda_handler
+- Memory: 128 MB
+- Timeout: 30 seconds
 
 # Save a story
 
