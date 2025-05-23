@@ -12,7 +12,7 @@ TIMEOUT = 30
 
 
 # on update
-build: clean 
+build: clean
 	mkdir -p package
 	pip install --target ./package -r requirements.txt
 	cp lambda_function.py package/
@@ -20,6 +20,8 @@ build: clean
 	@echo "Created deployment package: deployment-package.zip"
 
 build-py: 
+	find . -type d -name "__pycache__" -exec rm -rf {} +
+	find . -type f -name "*.pyc" -delete
 	cp lambda_function.py package/
 	cd package && zip -r ../deployment-package.zip .
 	@echo "Created deployment package: deployment-package.zip"
@@ -35,23 +37,6 @@ clean:
 	rm -rf package deployment-package.zip
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
-
-# one time setup
-setup-lambda: build
-	aws lambda create-function \
-		--function-name $(FUNCTION_NAME) \
-		--runtime $(RUNTIME) \
-		--handler $(HANDLER) \
-		--memory-size $(MEMORY) \
-		--timeout $(TIMEOUT) \
-		--role $(ROLE_ARN) \
-		--zip-file fileb://deployment-package.zip
-
-setup-api:
-	@echo "Creating API Gateway REST API..."
-	aws apigateway create-rest-api \
-		--name "DIY Pocket API" \
-		--description "API for DIY Pocket Lambda"
 
 lint:
 	black *.py
