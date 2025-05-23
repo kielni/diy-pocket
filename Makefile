@@ -6,25 +6,26 @@
 # Configuration with defaults
 FUNCTION_NAME ?= diy-pocket-save
 RUNTIME = python3.9
-HANDLER = main.lambda_handler
+HANDLER = lambda_function.lambda_handler
 MEMORY = 128
 TIMEOUT = 30
 
-# Validate required environment variables
-check-env:
-ifndef ROLE_ARN
-	$(error ROLE_ARN is not set. Please set it in .env file or environment)
-endif
 
 # on update
-build: clean
+build: clean 
 	mkdir -p package
 	pip install --target ./package -r requirements.txt
-	cp main.py package/
+	cp lambda_function.py package/
 	cd package && zip -r ../deployment-package.zip .
 	@echo "Created deployment package: deployment-package.zip"
 
-update-lambda: check-env build
+build-py: 
+	cp lambda_function.py package/
+	cd package && zip -r ../deployment-package.zip .
+	@echo "Created deployment package: deployment-package.zip"
+
+
+update:
 	aws lambda update-function-code \
 		--function-name $(FUNCTION_NAME) \
 		--zip-file fileb://deployment-package.zip
@@ -35,6 +36,16 @@ clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
 
+# one time setup
+setup-lambda: build
+	aws lambda create-function \
+		--function-name $(FUNCTION_NAME) \
+		--runtime $(RUNTIME) \
+		--handler $(HANDLER) \
+		--memory-size $(MEMORY) \
+		--timeout $(TIMEOUT) \
+		--role $(ROLE_ARN) \
+		--zip-file fileb://deployment-package.zip
 
 setup-api:
 	@echo "Creating API Gateway REST API..."
@@ -42,3 +53,6 @@ setup-api:
 		--name "DIY Pocket API" \
 		--description "API for DIY Pocket Lambda"
 
+lint:
+	black *.py
+	flake8 *.py

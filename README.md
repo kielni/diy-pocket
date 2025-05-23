@@ -43,24 +43,20 @@ pip install -r requirements.txt
 2. First time deployment
 
 Create diy-pocket-save Lambda in AWS console.
+Create API gateway in AWS console.
 
-```bash
-make setup-api
-```
-
-3. Save ROLE_ARN
-
-Add Lambda details to `local.env`
-
-
-4. Deploy to AWS Lambda:
+4. Build and deploy to AWS Lambda:
 ```bash
 # Update existing function
-make build update-lambda
+make build update
+```
+
+```bash
+make build-py update
+python save.py
 ```
 
 Required environment variables:
-- `ROLE_ARN` - AWS IAM Role ARN for Lambda execution
 - `FUNCTION_NAME` - Lambda function name (defaults to diy-pocket-save)
 
 Lambda Function Configuration:
