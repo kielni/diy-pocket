@@ -1,3 +1,5 @@
 deployment-package.zip
 local.env
 package/
+.idea
+node_modules

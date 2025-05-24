@@ -6,6 +6,7 @@ from datetime import datetime
 from io import BytesIO
 from typing import List, Optional, Set
 import boto3
+from package.botocore.retries import bucket
 from pydantic import BaseModel, Field
 
 log = logging.getLogger("save")
@@ -80,18 +81,20 @@ def load_articles() -> Set[Article]:
 def save_articles(articles: Set[Article]) -> None:
     """Save Article objects to S3 as JSON"""
     try:
+        bucket_name = get_bucket_name()
         articles_data = [article.model_dump() for article in articles]
         content = json.dumps(articles_data).encode("utf-8")
         content = gzip.compress(content)
         log.info(
             s3.put_object(
-                Bucket=get_bucket_name(),
+                Bucket=bucket_name,
                 Key=ARTICLES_FILE,
                 Body=content,
                 ContentType="application/json",
                 ContentEncoding="gzip",
             )
         )
+        log.info(f"Saved {len(articles)} articles to s3://{bucket_name}/{ARTICLES_FILE}")
     except Exception as e:
         log.error(f"Error saving articles: {str(e)}")
         raise

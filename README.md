@@ -81,8 +81,8 @@ Append datetime, url, title, source, tags, and excerpt to compressed JSON file i
 Validate requester is authorized: comes from specific url.
 
 # Review stories
-Create index.html that
-  - Load stories JSON from S3 bucket.
+Create articles.html that
+  - Load stories JSON from articles.json
   - Sort stories by datetime descending.
   - Display stories using bootstrap cards.
 
