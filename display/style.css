@@ -1,0 +1,25 @@
+#tagTypeahead {
+  background-color: #f8f9fa;
+  min-width: 200px;
+  width: auto;
+  display: inline-block;
+  font-family: inherit;
+  font-size: inherit;
+  padding-right: 2.5rem;
+}
+#filterTags .list-group {
+  background-color: khaki;
+  border: 1px solid #dee2e6;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  max-height: 20em;
+  max-width: 40em;
+  overflow-y: auto;
+}
+
+#filterTags .list-group-item {
+  background-color: aliceblue;
+  cursor: pointer;
+}
+#filterTags .list-group-item.active {
+  background-color: #007bff;
+}
