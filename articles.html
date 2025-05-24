@@ -16,7 +16,12 @@
     ></script>
   </head>
   <body>
-    <div class="container my-4" x-data="articlesApp()" x-init="loadArticles()">
+    <div
+      class="container my-4"
+      x-data="articlesApp()"
+      x-init="loadArticles()"
+      @select-tag.window="selectedTag = $event.detail; tagSearch = $event.detail"
+    >
       <div class="row mb-3">
         <div
           class="col-md-4"
@@ -68,7 +73,7 @@
         </div>
       </template>
       <div id="articles-container" class="row g-4">
-        <template x-for="article in filteredArticles" :key="article.url">
+        <template x-for="article in filteredArticles()" :key="article.url">
           <div class="col-md-6 col-lg-4">
             <div class="card h-100">
               <template x-if="article.photo_url">
@@ -92,7 +97,12 @@
                 </p>
                 <p class="card-text">
                   <template x-for="tag in article.tags">
-                    <span class="badge bg-secondary me-1" x-text="tag"></span>
+                    <span
+                      class="badge bg-secondary me-1"
+                      x-text="tag"
+                      @mousedown.prevent="$dispatch('select-tag', tag)"
+                      style="cursor: pointer"
+                    ></span>
                   </template>
                 </p>
                 <a :href="article.url" target="_blank" x-text="article.url"></a>
@@ -110,7 +120,7 @@
           selectedTag: "",
           allTags: [],
           tagCounts: {},
-          get filteredArticles() {
+          filteredArticles() {
             if (!this.selectedTag) return this.articles;
             return this.articles.filter(
               (article) =>
