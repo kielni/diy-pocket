@@ -68,6 +68,7 @@
             class="btn btn-outline-secondary btn-sm ms-2 mb-1"
             x-show="selectedTag"
             title="Clear filter"
+            @click="clearTagFilter()"
           >
             <span>&times;</span>
           </button>
@@ -128,12 +129,24 @@
           selectedTag: "",
           allTags: [],
           tagCounts: {},
+          drawPartial() {
+            this.showPartial = true;
+            setTimeout(() => {
+              this.showPartial = false;
+            }, 100);
+          },
+          clearTagFilter() {
+            this.selectedTag = "";
+            this.tagSearch = "";
+            drawPartial();
+          },
           filteredArticles() {
-            if (!this.selectedTag) return this.articles;
-            return this.articles.filter(
-              (article) =>
-                article.tags && article.tags.includes(this.selectedTag)
-            );
+            const list = this.selectedTag
+              ? this.articles.filter(
+                  (a) => a.tags && a.tags.includes(this.selectedTag)
+                )
+              : this.articles;
+            return this.showPartial ? list.slice(0, 12) : list;
           },
           async loadArticles() {
             try {
@@ -153,7 +166,8 @@
                   article.title = article.url
                     .replace(/\/$/, "")
                     .split("/")
-                    .pop();
+                    .pop()
+                    .replace("-", " ", "g")
                 }
                 if (article.tags && Array.isArray(article.tags)) {
                   article.tags.forEach((tag) => {
@@ -168,6 +182,7 @@
               this.articles = data;
               this.allTags = Array.from(tagSet).sort();
               this.tagCounts = tagCounts;
+              this.drawPartial();
             } catch (e) {
               this.articles = [];
               this.allTags = [];
