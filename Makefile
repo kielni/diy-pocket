@@ -1,4 +1,4 @@
-.PHONY: clean build update lint html
+.PHONY: clean build update lint html loginZ
 
 # Load environment variables if .env file exists
 -include local.env

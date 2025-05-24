@@ -39,7 +39,7 @@ The function
 ## Display & filter articles
 
 A simple Alpine.js app loads a JSON file and displays it as Bootstrap cards, sorted newest first.
-It supports filterng articles by tag via a dropdown with typeahead.
+It also supports filterng articles by tag.
 
 ## Setup
 
@@ -54,6 +54,7 @@ Create AWS Lambda function:
   - from container image
   - using execution role with access to read and write S3 bucket
   - enable function URL
+  - environment variable BUCKET_NAME set to S3 bucket name
 
 ### local
 
