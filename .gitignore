@@ -3,3 +3,4 @@ local.env
 package/
 .idea
 node_modules
+config.js
