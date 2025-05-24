@@ -40,9 +40,8 @@
             :value="selectedTag"
           />
           <ul
-            class="list-group w-100 z-3"
+            class="list-group w-100 z-3 position-absolute"
             x-show="showList && (tagSearch || allTags.length > 0)"
-            style="max-height: 200px; overflow-y: auto"
           >
             <li
               class="list-group-item list-group-item-action"
@@ -167,7 +166,7 @@
                     .replace(/\/$/, "")
                     .split("/")
                     .pop()
-                    .replace("-", " ", "g")
+                    .replace(/-/g, " ");
                 }
                 if (article.tags && Array.isArray(article.tags)) {
                   article.tags.forEach((tag) => {
