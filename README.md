@@ -54,7 +54,9 @@ Create AWS Lambda function:
   - from container image
   - using execution role with access to read and write S3 bucket
   - enable function URL
-  - environment variable BUCKET_NAME set to S3 bucket name
+  - environment variables
+    - BUCKET_NAME set to S3 bucket name
+    - AUTH_TOKEN set to any string
 
 ### local
 
@@ -66,6 +68,7 @@ API_ENDPOINT=https://*value*.lambda-url.us-east-1.on.aws/save
 ECR_REPO=*AWS account*.dkr.ecr.us-east-1.amazonaws.com/*ECR repo name**
 AWS_ACCOUUNT_ID=*AWS account*
 BUCKET=*S3 bucket name*
+AUTH_TOKEN=*any string*
 ```
 
 Install dependencies:

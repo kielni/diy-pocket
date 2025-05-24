@@ -20,7 +20,7 @@ def main():
         response = requests.post(
             endpoint,
             json=payload,
-            headers={"Content-Type": "application/json"},
+            headers={"Content-Type": "application/json", "x-auth-token": os.getenv("AUTH_TOKEN")},
         )
 
         print(f"{response.status_code}")
