@@ -32,7 +32,8 @@ update:
 	docker push $(ECR_REPO):$(IMAGE_TAG)
 	aws lambda update-function-code \
 		--function-name $(FUNCTION_NAME) \
-		--image-uri $(ECR_REPO):$(IMAGE_TAG)
+		--image-uri $(ECR_REPO):$(IMAGE_TAG) \
+		--no-paginate
 
 lint:
 	black *.py

@@ -68,11 +68,17 @@ Lambda Function Configuration:
 - Memory: 128 MB
 - Timeout: 30 seconds
 
+aws ssm put-parameter \
+  --name "/diy-pocket/bucket" \
+  --value "your-secret-value" \
+  --type "SecureString" \
+  --overwrite
+  
 # Save a story
 
 AWS Lambda function receives a POST with url, title, source, excerpt, list of tags, and photo url.
-Validate requester is authorized: comes from specific url.
 Append datetime, url, title, source, tags, and excerpt to compressed JSON file in S3 bucket.
+Validate requester is authorized: comes from specific url.
 
 # Review stories
 Create index.html that
