@@ -63,6 +63,14 @@
               ></li>
             </template>
           </ul>
+          <button
+            type="button"
+            class="btn btn-outline-secondary btn-sm ms-2 mb-1"
+            x-show="selectedTag"
+            title="Clear filter"
+          >
+            <span>&times;</span>
+          </button>
         </div>
       </div>
       <template x-if="loading">
