@@ -1,15 +1,15 @@
 import json
 from typing import List, Optional
 from aws_lambda_powertools import Logger
-from aws_lambda_powertools.event_handler import APIGatewayRestResolver
+from aws_lambda_powertools.event_handler import LambdaFunctionUrlResolver
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from pydantic import BaseModel, HttpUrl
 
 # Initialize logger
 logger = Logger()
 
-# Initialize API Gateway resolver
-app = APIGatewayRestResolver()
+# Initialize Function URL resolver
+app = LambdaFunctionUrlResolver()
 
 
 class ArticleInput(BaseModel):

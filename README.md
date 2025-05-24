@@ -43,6 +43,9 @@ pip install -r requirements.txt
 2. First time deployment
 
 Create diy-pocket-save Lambda in AWS console.
+
+
+
 Create API gateway in AWS console.
 
 4. Build and deploy to AWS Lambda:

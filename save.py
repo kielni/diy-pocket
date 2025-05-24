@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import requests
 import json
-from datetime import datetime
 import os
 
 
@@ -27,7 +26,6 @@ def main():
             endpoint,
             json=payload,
             headers={"Content-Type": "application/json"},
-            verify=False,
         )
 
         # Print response details
