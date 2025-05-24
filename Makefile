@@ -1,4 +1,4 @@
-.PHONY: clean build update lint
+.PHONY: clean build update lint html
 
 # Load environment variables if .env file exists
 -include local.env
@@ -12,7 +12,7 @@ IMAGE_TAG ?= "$(FUNCTION_NAME)-latest"
 
 build:
 	@echo "Building Docker image $(FUNCTION_NAME):$(IMAGE_TAG)..."
-	docker build -t $(FUNCTION_NAME):$(IMAGE_TAG) .
+	cd save && docker build -t $(FUNCTION_NAME):$(IMAGE_TAG) .
 
 login:
 	aws ecr get-login-password --region $(AWS_REGION) | \
@@ -35,6 +35,13 @@ update:
 		--image-uri $(ECR_REPO):$(IMAGE_TAG) \
 		--no-paginate
 
+html:
+	aws s3 sync display/ s3://$(BUCKET)/articles \
+		--exclude "node_modules/*" \
+		--exclude "package-lock.json" \
+		--exclude "package.json"
+
 lint:
 	black *.py
 	flake8 *.py
+

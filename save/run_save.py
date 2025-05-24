@@ -1,15 +1,11 @@
-#!/usr/bin/env python3
 import requests
 import json
 import os
-
+from dotenv import load_dotenv
 
 def main():
-    """
-    Test the article submission endpoint with a sample payload
-    """
+    load_dotenv("local.env")
     endpoint = os.getenv("API_ENDPOINT") or "http://localhost:8000"
-    # Sample article payload
     payload = {
         "url": "https://example.com/test-article",
         "title": "Test Article Title",
@@ -20,7 +16,6 @@ def main():
     }
 
     try:
-        # Send POST request
         print(f"POST {endpoint}")
         response = requests.post(
             endpoint,
@@ -28,12 +23,12 @@ def main():
             headers={"Content-Type": "application/json"},
         )
 
-        # Print response details
         print(f"{response.status_code}")
         print(json.dumps(response.json(), indent=2))
         for key, value in response.headers.items():
             print(f"{key}: {value}")
 
+        print(f"wrote to s3://{os.getenv('BUCKET')}/articles.json")
         return response.status_code == 200
 
     except requests.exceptions.RequestException as e:

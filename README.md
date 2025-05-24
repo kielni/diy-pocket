@@ -1,90 +1,106 @@
-# DIY Pocket Lambda Function
+# DIY Pocket
 
-AWS Lambda function that receives a POST with url, title, source, excerpt, list of tags, and photo url.
+After [Pocket shut down](https://support.mozilla.org/en-US/kb/future-of-pocket), I needed a new
+way to save interesting content. 
 
-## API Endpoint
+Goals:
 
-The Lambda function exposes a POST endpoint at `/article` that accepts the following JSON payload:
+  - Avoid enshittification risk: own my data and rent low-level, durable infrastructure.
+  - Store data in AWS: I have confidence that S3 and Lambda aren't going away soon.
+  - Available with low latency on all of my devices.
+  - Just for me: basic security best practices + obscurity is sufficient since this not sensitive data.
+
+Components:
+
+  - AWS Lambda function to save articles as a gzipped JSON file in S3
+  - Alpine.js + bootstrap html page to display articles, hosted on S3
+
+## AWS Lambda function: save article
+
+An AWS Lambda function with a function URL accepts a POST request with:
 
 ```json
 {
-    "url": "https://example.com/article",
-    "title": "Article Title",
-    "source": "Source Name",
-    "excerpt": "Article excerpt or summary",
-    "tags": ["tag1", "tag2", "tag3"],
-    "photo_url": "https://example.com/photo.jpg" // Optional
+  "url": "article URL",
+  "title": "article title",
+  "source": "source name (optional)",
+  "excerpt": "excerpt or summary",
+  "tags": ["tag1", "tag2"],
+  "photo_url": "photo URL (optional)"
 }
 ```
 
-## Response
+The function
 
-Successful response (200):
-```json
-{
-    "message": "Article saved successfully",
-}
+  - loads the current set of articles from S3 into JSON
+  - adds the new article
+  - gzips and saves the file to S3
+
+## Display & filter articles
+
+A simple Alpine.js app loads a JSON file and displays it as Bootstrap cards, sorted newest first.
+It supports filterng articles by tag via a dropdown with typeahead.
+
+## Setup
+
+### AWS
+
+Create S3 bucket to store article JSON and serve static html page.
+
+Create ECR repository to store container image for Lambda function.
+
+Create AWS Lambda function:
+
+  - from container image
+  - using execution role with access to read and write S3 bucket
+  - enable function URL
+
+### local
+
+Create local.env with
+
+```
+FUNCTION_NAME=*lambda-function-name*
+API_ENDPOINT=https://*value*.lambda-url.us-east-1.on.aws/save
+ECR_REPO=*AWS account*.dkr.ecr.us-east-1.amazonaws.com/*ECR repo name**
+AWS_ACCOUUNT_ID=*AWS account*
+BUCKET=*S3 bucket name*
 ```
 
-Error response (400):
-```json
-{
-    "error": "Error message details"
-}
+Install dependencies:
+
+```
+cd save && pip install -r requirements.txt
 ```
 
-## Development and Deployment
+Build Docker image, push to ECR, and update Lambda function:
 
-1. Install dependencies:
-```bash
-pip install -r requirements.txt
+```
+make login build update
 ```
 
-2. First time deployment
+Test:
 
-Create diy-pocket-save Lambda in AWS console.
-
-
-
-Create API gateway in AWS console.
-
-4. Build and deploy to AWS Lambda:
-```bash
-# Update existing function
-make build update
+```
+python save/run_save.py
+aws s3 cp s3://*S3 bucket name*/articles.json articles.json.gz
+gzcat articles.json.gz | grep "Test Article Title"
 ```
 
-```bash
-make build-py update
-python save.py
+Create display/config.js with
+
+```
+const DATA_URL = "https://*S3 bucket name*.s3.us-west-1.amazonaws.com/articles.json"
 ```
 
-Required environment variables:
-- `FUNCTION_NAME` - Lambda function name (defaults to diy-pocket-save)
+Deploy to S3 bucket:
 
-Lambda Function Configuration:
-- Runtime: Python 3.9
-- Handler: main.lambda_handler
-- Memory: 128 MB
-- Timeout: 30 seconds
+```
+make html
+```
 
-aws ssm put-parameter \
-  --name "/diy-pocket/bucket" \
-  --value "your-secret-value" \
-  --type "SecureString" \
-  --overwrite
-  
-# Save a story
+Test in browser:
 
-AWS Lambda function receives a POST with url, title, source, excerpt, list of tags, and photo url.
-Append datetime, url, title, source, tags, and excerpt to compressed JSON file in S3 bucket.
-Validate requester is authorized: comes from specific url.
-
-# Review stories
-Create articles.html that
-  - Load stories JSON from articles.json
-  - Sort stories by datetime descending.
-  - Display stories using bootstrap cards.
-
-Add dropdowns on the top of the page for source and tags.
-On select a dropdown, filter results to match the source or tags.
+```
+https://*S3 bucket name*.s3.us-west-1.amazonaws.com/articles/index.html
+```

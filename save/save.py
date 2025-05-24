@@ -2,11 +2,11 @@ import argparse
 import gzip
 import json
 import logging
+import os
 from datetime import datetime
 from io import BytesIO
 from typing import List, Optional, Set
 import boto3
-from package.botocore.retries import bucket
 from pydantic import BaseModel, Field
 
 log = logging.getLogger("save")
@@ -34,8 +34,6 @@ class Article(BaseModel):
         )
 
     def __hash__(self):
-        # Use a tuple of immutable values for hashing
-        # Sort tags to ensure consistent hashing regardless of tag order
         return hash(
             (
                 self.url,
@@ -55,9 +53,7 @@ class Article(BaseModel):
 
 
 def get_bucket_name():
-    ssm = boto3.client("ssm")
-    resp = ssm.get_parameter(Name="/diy-pocket/bucket", WithDecryption=True)
-    return resp["Parameter"]["Value"]
+    return os.getenv("BUCKET_NAME", None)
 
 
 def load_articles() -> Set[Article]:
@@ -66,10 +62,9 @@ def load_articles() -> Set[Article]:
         response = s3.get_object(Bucket=get_bucket_name(), Key=ARTICLES_FILE)
         log.info(f"load s3://{get_bucket_name()}/{ARTICLES_FILE}")
         body = response["Body"].read()
-        with open("temp.json.gz", "wb") as f:
-            f.write(body)
         with gzip.GzipFile(fileobj=BytesIO(body)) as gz:
             data = gz.read().decode("utf-8")
+        log.info(f"Loaded {len(data)} bytes from S3")
         return {Article(**article) for article in json.loads(data)}
     except s3.exceptions.NoSuchKey:
         return set()
@@ -83,7 +78,7 @@ def save_articles(articles: Set[Article]) -> None:
     try:
         bucket_name = get_bucket_name()
         articles_data = [article.model_dump() for article in articles]
-        content = json.dumps(articles_data).encode("utf-8")
+        content = json.dumps(articles_data, indent=2).encode("utf-8")
         content = gzip.compress(content)
         log.info(
             s3.put_object(
