@@ -1,42 +1,62 @@
 import json
 import os
 from aws_lambda_powertools import Logger
-from aws_lambda_powertools.event_handler import LambdaFunctionUrlResolver
-from aws_lambda_powertools.utilities.typing import LambdaContext
 from save import save_article
 
 logger = Logger()
-app = LambdaFunctionUrlResolver()
 
-def check_auth() -> bool:
-    """Requuire valid x-auth-token header."""
-    header = app.current_event.headers.get("x-auth-token")
-    if not header or header != os.getenv("AUTH_TOKEN"):
-        logger.error("Invalid or missing x-auth-token header")
-        return False
-    return True
+CORS_HEADERS = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "Content-Type,x-auth-token",
+    "Access-Control-Allow-Methods": "OPTIONS,POST"
+}
 
+def handle_options():
+    logger.info(f"CORS preflight request: {CORS_HEADERS}")
+    return {
+        "statusCode": 200,
+        "headers": CORS_HEADERS,
+        "body": ""
+    }
 
-@app.post("/save")
-def save_article_request():
-    if not check_auth():
+def handle_post(event):
+    headers = event.get("headers", {})
+    auth_token = headers.get("x-auth-token")
+    if not auth_token or auth_token != os.getenv("AUTH_TOKEN"):
         return {
             "statusCode": 403,
+            "headers": CORS_HEADERS,
             "body": json.dumps({"error": "Forbidden: Invalid or missing x-auth-token header"})
         }
     try:
-        save_article(app.current_event.json_body)
-
-        return {"statusCode": 200, "body": json.dumps({"status": "ok"})}
-
+        body = event.get("body")
+        if event.get("isBase64Encoded"):
+            import base64
+            body = base64.b64decode(body).decode()
+        data = json.loads(body)
+        logger.info(f"POST article data: {data}")
+        save_article(data)
+        return {
+            "statusCode": 200,
+            "headers": CORS_HEADERS,
+            "body": json.dumps({"status": "ok"})
+        }
     except Exception as e:
         logger.error(f"Error processing article: {str(e)}")
-        return {"statusCode": 400, "body": json.dumps({"error": str(e)})}
+        return {
+            "statusCode": 400,
+            "headers": CORS_HEADERS,
+            "body": json.dumps({"error": str(e)})
+        }
 
-
-@logger.inject_lambda_context
-def lambda_handler(event: dict, context: LambdaContext) -> dict:
-    """
-    Main Lambda handler function
-    """
-    return app.resolve(event, context)
+def lambda_handler(event, context):
+    method = event.get("requestContext", {}).get("http", {}).get("method", "")
+    if method == "OPTIONS":
+        return handle_options()
+    if method == "POST":
+        return handle_post(event)
+    return {
+        "statusCode": 405,
+        "headers": CORS_HEADERS,
+        "body": json.dumps({"error": "Method not allowed"})
+    }

@@ -9,10 +9,9 @@ AWS_REGION ?= us-east-1
 ECR_REPO ?= $(FUNCTION_NAME)
 IMAGE_TAG ?= "$(FUNCTION_NAME)-latest"
 
-
 build:
 	@echo "Building Docker image $(FUNCTION_NAME):$(IMAGE_TAG)..."
-	cd save && docker build -t $(FUNCTION_NAME):$(IMAGE_TAG) .
+	cd save &&  docker buildx build --platform linux/amd64 --provenance=false -t $(FUNCTION_NAME):$(IMAGE_TAG) .
 
 login:
 	aws ecr get-login-password --region $(AWS_REGION) | \
@@ -40,6 +39,7 @@ html:
 		--exclude "node_modules/*" \
 		--exclude "package-lock.json" \
 		--exclude "package.json"
+	@echo "https://$(BUCKET).s3.us-west-1.amazonaws.com/articles/index.html"
 
 lint:
 	black *.py
