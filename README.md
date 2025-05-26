@@ -44,6 +44,38 @@ A scheduled EventBridge rule triggers the Lambda function to update the file con
 
 A simple Alpine.js app loads a JSON file and displays it as Bootstrap cards, sorted  newest first. It also supports filterng articles by tag.
 
+## Use cases
+
+Save articles I click in my RSS feed, tagged with `rss`:
+
+```
+  const body = {
+    url: story.find("a").attr("href"),
+    title: story.find(".title").text().trim(),
+    source: story.find(".source").text().trim(),
+    excerpt: story.find(".summary").text().trim(),
+    tags: ["rss"],
+    photo_url: story.find("img").attr("src") || null,
+  };
+
+  $.post({
+    url: config.webhookURL,
+    data: JSON.stringify(body),
+    contentType: "application/json",
+    headers: {
+      "x-auth-token": config.webhookToken,
+    },
+  });
+```
+
+Save articles I might want to find again:
+
+<img src="save.png" width=400>
+
+View saved stories; filter by tag or search page text with find in page:
+
+<img src="display.png" width=400>
+
 ## Setup
 
 ### AWS
