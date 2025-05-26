@@ -3,6 +3,7 @@ import gzip
 import json
 import logging
 import os
+import re
 from datetime import datetime
 from io import BytesIO
 from typing import List, Optional, Set
@@ -13,6 +14,7 @@ log = logging.getLogger("save")
 s3 = boto3.client("s3")
 
 ARTICLES_FILE = "articles.json"
+PENDING_PATH = "pending-articles"
 
 
 class Article(BaseModel):
@@ -29,9 +31,7 @@ class Article(BaseModel):
     def __eq__(self, other):
         if not isinstance(other, Article):
             return False
-        return (
-            self.url == other.url
-        )
+        return self.url == other.url
 
     def __hash__(self):
         return hash(
@@ -89,19 +89,65 @@ def save_articles(articles: Set[Article]) -> None:
                 ContentEncoding="gzip",
             )
         )
-        log.info(f"Saved {len(articles)} articles to s3://{bucket_name}/{ARTICLES_FILE}")
+        log.info(
+            f"Saved {len(articles)} articles to s3://{bucket_name}/{ARTICLES_FILE}"
+        )
     except Exception as e:
         log.error(f"Error saving articles: {str(e)}")
         raise
 
 
-def save_article(body: dict):
+def write_pending() -> tuple[int, int]:
+    """Load all articles, process all pending articles, and save the combined set."""
+    bucket_name = get_bucket_name()
+    response = s3.list_objects_v2(Bucket=bucket_name, Prefix=PENDING_PATH)
+    pending_files = [
+        item["Key"]
+        for item in response.get("Contents", [])
+        if item["Key"].endswith(".json.gz")
+    ]
+    log.info(f"Found {len(pending_files)} pending files in {PENDING_PATH}")
+    if not pending_files:
+        log.info("No pending files to process.")
+        return 0, 0
     articles = load_articles()
-    log.info(f"Loaded {len(articles)} articles")
-    new_article = Article(**body)
-    log.info(f"Parsed article: {new_article}")
-    articles.add(new_article)
+    for key in pending_files:
+        try:
+            obj = s3.get_object(Bucket=bucket_name, Key=key)
+            article_data = json.loads(obj["Body"].read())
+            article = Article(**article_data)
+            articles.add(article)
+            log.info(f"Processed pending article from {key}")
+        except Exception as e:
+            log.error(f"Error processing pending file {key}: {str(e)}")
     save_articles(articles)
+    for key in pending_files:
+        try:
+            s3.delete_object(Bucket=bucket_name, Key=key)
+        except Exception as e:
+            log.error(f"Error deleting pending file {key}: {str(e)}")
+    return len(pending_files), len(articles)
+
+
+def save_pending_article(body: dict) -> str:
+    """Save a pending article to S3."""
+    try:
+        bucket_name = get_bucket_name()
+        content = json.dumps(body, indent=2).encode("utf-8")
+        url = re.sub(r"\W", "_", body.get("url"))
+        key = f"{PENDING_PATH}/{url}.json.gz"
+        s3.put_object(
+            Bucket=bucket_name,
+            Key=key,
+            Body=content,
+            ContentType="application/json",
+            ContentEncoding="gzip",
+        )
+        log.info(f"Saved pending article to s3://{bucket_name}/{key}")
+        return key
+    except Exception as e:
+        log.error(f"Error saving pending article: {str(e)}")
+        raise
 
 
 def to_articles(docs: List[dict]) -> Set[Article]:

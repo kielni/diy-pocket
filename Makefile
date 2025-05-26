@@ -42,6 +42,6 @@ html:
 	@echo "https://$(BUCKET).s3.us-west-1.amazonaws.com/articles/index.html"
 
 lint:
-	black *.py
-	flake8 *.py
+	black save/*.py
+	flake8 save/*.py
 

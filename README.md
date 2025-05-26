@@ -30,16 +30,19 @@ An AWS Lambda function with a function URL accepts a POST request with:
 }
 ```
 
-The function
+The POST request saves the new article in a `pending-articles/` folder in S3.
 
-  - loads the current set of articles from S3 into JSON
-  - adds the new article
-  - gzips and saves the file to S3
+A scheduled EventBridge rule triggers the Lambda function to update the file containing all articles:
+
+  - load articles file from S3
+  - load and merge all pending articles from `pending-articles/`
+  - gzip and replace articles file in S3
+  - delete the processed pending files
+
 
 ## Display & filter articles
 
-A simple Alpine.js app loads a JSON file and displays it as Bootstrap cards, sorted newest first.
-It also supports filterng articles by tag.
+A simple Alpine.js app loads a JSON file and displays it as Bootstrap cards, sorted  newest first. It also supports filterng articles by tag.
 
 ## Setup
 
@@ -57,6 +60,7 @@ Create AWS Lambda function:
   - environment variables
     - BUCKET_NAME set to S3 bucket name
     - AUTH_TOKEN set to any string
+  - Event Bridge trigger to update articles file on a schedule
 
 ### local
 
