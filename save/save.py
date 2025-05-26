@@ -34,16 +34,7 @@ class Article(BaseModel):
         return self.url == other.url
 
     def __hash__(self):
-        return hash(
-            (
-                self.url,
-                self.title,
-                self.source,
-                self.excerpt,
-                tuple(sorted(self.tags)),
-                self.photo_url,
-            )
-        )
+        return hash(self.url)
 
     def model_dump(self):
         return {

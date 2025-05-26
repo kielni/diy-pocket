@@ -1,5 +1,6 @@
 import json
 import os
+import traceback
 from aws_lambda_powertools import Logger
 from save import save_pending_article, write_pending
 
@@ -47,6 +48,7 @@ def handle_post(event):
         }
     except Exception as e:
         logger.error(f"Error processing article: {str(e)}")
+        traceback.print_exc()
         return {
             "statusCode": 400,
             "headers": CORS_HEADERS,

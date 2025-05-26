@@ -39,7 +39,7 @@ def main(commit: bool = False) -> bool:
 
         status = response.status_code == 200
         print(f"status: {status}")
-        print(f"wrote to s3://{os.getenv('BUCKET')}/articles.json")
+        print(f"wrote to s3://{os.getenv('BUCKET_NAME')}/articles.json")
         if commit:
             time.sleep(2)
             ts = datetime.now()

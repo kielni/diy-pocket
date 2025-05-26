@@ -35,11 +35,11 @@ update:
 		--no-paginate
 
 html:
-	aws s3 sync display/ s3://$(BUCKET)/articles \
+	aws s3 sync display/ s3://$(BUCKET_NAME)/articles \
 		--exclude "node_modules/*" \
 		--exclude "package-lock.json" \
 		--exclude "package.json"
-	@echo "https://$(BUCKET).s3.us-west-1.amazonaws.com/articles/index.html"
+	@echo "https://$(BUCKET_NAME).s3.us-west-1.amazonaws.com/articles/index.html"
 
 lint:
 	black save/*.py
